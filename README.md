@@ -35,3 +35,17 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
 
 - **`deploy.py`**: Handles the actual deployment logic for both Rolling and Blue/Green strategies.
 - **`smoke_test.py`**: Executes health checks and basic validation after deployment.
+
+## Answers to a Few Questions as shared in the Google Doc:
+
+1.  **What's the branching strategy?**
+    a. How am I mapping branches to environments?
+    - **`develop`**: For development work. Triggers QA deployments.
+    - **`release/*`**: For release candidates. Triggers Staging deployments.
+    - **`main`**: For production releases. Triggers Production deployments.
+    - **Other branches** (e.g., feature branches): Are not deployed.
+
+    b. How am I avoiding accidental prod deployments?
+    - Every staging, prod env specific deployments need a manual approval gate. Without the manual approval, no deployment can happen in these environments hence avoiding accidental deployments.
+
+
