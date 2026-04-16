@@ -70,5 +70,22 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
         - **`main`**: If smoke test fails, it triggers an automatic blue/green rollback to the previous stable tag.
         - Please refer `scripts/rollback.py` for more details.
         
+3.  **What's the Configuration Management strategy?**
+
+    - Environment-specific configuration is never committed to the repository. All config values live in AWS SSM Parameter Store under a namespaced path per environment. For eg:
+        - /sync-service/{env}/ec2-host
+        - /sync-service/{env}/mongo-uri
+        - /sync-service/prod/blue-tg-arn
+        - /sync-service/prod/green-tg-arn
+    The Jenkinsfile fetches these at runtime using env.DEPLOY_ENV as the path segment.
+
+    - Spring Boot config is provisioned once on each EC2 instance at setup time using the user data script (bootstrap script).
+
+    - MongoDB credentials are stored as SSM Parameter Store. Each EC2 instance has an IAM Role that restricts it to reading only its own environment's parameters. So, a QA EC2 cannot read Prod EC2's MongoDB creds.
+
+    - Jenkins credentials (SSH keys for EC2 access, AWS account ID) are stored in the Jenkins Credential Store and injected only at the stage that needs them.
+
+    - ECR authentication requires no stored credential at all so the Jenkins EC2 has an IAM Instance Role with ECR push permissions.
+
         
     
