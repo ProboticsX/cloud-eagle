@@ -171,6 +171,6 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
     - Fully Managed AWS MongoDB service. If Primary node goes down during any Spring Boot write async operation then MongoDB Atlas could elect a Secondary node as the new Primary Node avoiding data loss.
     
 
-**Closing Thought for Imrpovement**:
+**Closing Thought for Improvement**:
 - We could also use a GitOps Tool like ArgoCD to better handle deployments. It could help us directly deploy to ECS hence giving us more visibility and control over the deployment process. It also adds an extra layer for syncing processes between Git and ECS.
 - More about this tool: https://argo-cd.readthedocs.io/en/stable/
