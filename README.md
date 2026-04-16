@@ -105,6 +105,72 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
 
 ![alt text](image.png)
 
+**NOTE**: The architecture is in AWS because I am more familiar with AWS components than GCP. Due to the timing constraints, I've formed the architecture using AWS but the same can be replicated in GCP using the equivalent components.
+
 ## Components Involved:
 
-1. 
+1. **VPC**:
+    - 1 CIDR block: 10.0.0.0/16
+    - 4 Subnets across 2 AZs
+        - 2 Public Subnets (for ALB):
+            - Public AZ-a
+            - Public AZ-b
+        - 2 Private Subnets (for ECS Tasks):
+            - Private AZ-a
+            - Private AZ-b
+
+2. **ACM Certificate**: 
+    - In order to have a secure connection, we need to create a HTTPS connection between the client and the host. This is achieved using ACM Certificate.
+    - The TLS handshake happens at eh ALB via HTTPS which presents the ACM certificate. The encrypted tunnel is established between phone and the ALB. The traffic between ALB and ECS tasks is unencrypted. This is acceptable because the ALB and ECS tasks are in the same private network.
+
+3. **ALB**: 
+    - ALB is a load balancer that distributes traffic across multiple ECS tasks. It is placed in the public subnets and has a public IP address. It is also the entry point for all traffic to the application.
+    - Listeners:
+        - HTTPS: 443 -> Forwards to ECS tasks after decrytping the request using ACM certificate.
+        - HTTP: 80 -> Redirects to HTTPS: 443
+    - Security Groups:
+        - Inbound: 0.0.0.0/0 -> HTTPS: 443, HTTP: 80
+        - Outbound: ECS tasks
+
+4. **NAT Gateway:**
+    - NAT Gateway is used to provide internet access to the ECS tasks in the private subnets. It is placed in the public subnets and has a public IP address. It is also the entry point for all traffic from the ECS tasks to the internet and other AWS services.
+    - 2 NATs per AZ for high availability with the route tables of private subnets pointing to the NAT Gateway in the same AZ.
+
+5. **ECR**:
+    - AWS Docker Registry
+
+6. **IAM**:
+    - AWS Permission Management System
+    - ECS Task role needed to access SSM Parameter Store and ECR.
+    - Jenkins Deploy role needed to ECR and ECS tasks.
+
+7. **SSM Parameter Store**:
+    - AWS Systems Manager Parameter Store is a service that lets you store configuration data and secrets as key-value pairs.
+
+8. **ECS Fargate** (Important):
+    - ECS Fargate (~ GKE Autopilot with lesser visibility) is a compute engine for Amazon ECS that allows you to run containers without having to manage servers. It is a serverless compute engine that allows you to run containers without having to manage servers. 
+    - It fits our solution because:
+        - No need of infra team. No servers to patch, no AMIs, no SSH as AWS manages the host entirely
+        - Auto Scaling adjusts task count automatically. Scaling can be done easily by setting the min/max tasks.
+        - Security is built-in. Tasks run in private subnets with no direct internet access. Security groups control traffic.        
+    - Why not EKS? (~GKE)
+        - EKS can cost too much and is an overkill for running just one service
+        - Kubernetes brings in a lot of operational complexity and overhead which isn't needed as per now.
+    - Why not EC2? (~GCP Compute Engine)
+        - That's a lot of infrastructure overhead to manage if we just choose to deploy a single service.
+        - We'll need to configure auto-scaling, load balancing, health checks, AMIs, etc. manually.
+    - Why not Cloud Run?
+        - As per my research, Cloud Run is kind of similar to AWS Lambda. It is a serverless platform that allows you to run containers without having to manage servers. 
+        - It has a cold-start problem which means Cloud Run will spin the container down after inactivity and restart it on the next request. That first request after idle gets a timeout instead of a response.
+        - Cloud Run's model of spinning instances up/down constantly means we're re-establishing the pool connection again and again whereas Fargate could keep the connection alive always.
+        
+9. **Cloud Watch**:
+    - AWS Observability and monitoring tool for logs, alerts, metrics, dashboards, etc.
+
+10. **MongoDB Atlas** (VPC Peered with Pvt Subnets ECS Tasks):
+    - Fully Managed AWS MongoDB service. If Primary node goes down during any Spring Boot write async operation then MongoDB Atlas could elect a Secondary node as the new Primary Node avoiding data loss.
+    
+
+**Closing Thought for Imrpovement**:
+- We could also use a GitOps Tool like ArgoCD to better handle deployments. It could help us directly deploy to ECS hence giving us more visibility and control over the deployment process. It also adds an extra layer for syncing processes between Git and ECS.
+- More about this tool: https://argo-cd.readthedocs.io/en/stable/
