@@ -51,7 +51,7 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
     - Every staging, prod env specific deployments need a manual approval gate. Without the manual approval, no deployment can happen in these environments hence avoiding accidental deployments.
 
 
-1.  **What's the Jenkins Pipeline?**
+2.  **What's the Jenkins Pipeline?**
 
     a. High Level stages
     - Already shared above in the "Pipeline Stages" section.
