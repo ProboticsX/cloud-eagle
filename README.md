@@ -1,5 +1,6 @@
 # Cloud Eagle
 
+# TASK 1
 The CI/CD pipeline automates the entire deployment lifecycle from code commit to production release, ensuring reliability through automated testing, approval gates, and rollback mechanisms.
 
 ## Pipeline Stages
@@ -100,3 +101,10 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
 
         
     
+# TASK 2
+
+![alt text](image.png)
+
+## Components Involved:
+
+1. 
