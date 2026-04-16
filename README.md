@@ -87,5 +87,16 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
 
     - ECR authentication requires no stored credential at all so the Jenkins EC2 has an IAM Instance Role with ECR push permissions.
 
+4. **What's the Deployment Strategy?**
+
+    - Recreate:
+        - **Not going with this strategy at all** at all because it has a guaranteed downtime since the gap between stop and start is dead time.
+    
+    - Rolling:
+        - **Only for qa, staging** envs because downtime is acceptable as this strategy replaces instances one at a time while others keep serving traffic.
+    
+    - Blue/Green:
+        - **Only for prod** env because downtime is not acceptable as this strategy replaces all instances at once and then switches traffic from old to new. If something goes wrong, it instantly rolls back to previous image. Extra infra setup is needed but is worth the cost.
+
         
     
