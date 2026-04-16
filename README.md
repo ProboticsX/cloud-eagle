@@ -39,6 +39,7 @@ The pipeline relies on two Python scripts located in the `scripts/` directory:
 ## Answers to a Few Questions as shared in the Google Doc:
 
 1.  **What's the branching strategy?**
+
     a. How am I mapping branches to environments?
     - **`develop`**: For development work. Triggers QA deployments.
     - **`release/*`**: For release candidates. Triggers Staging deployments.
